@@ -1,3 +1,4 @@
+https://buymeacoffee.com/rust505
 🚀 A12 Bypass Setup & Operation Guide
 📋 Initial Setup
 
