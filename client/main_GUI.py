@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# main.py — iOS Activation Bypass GUI (macOS, PyQt6)
+# main.py — iOS Activation Bypass GUI (macOS, PyQt6) — Enhanced for PyInstaller & UX
+
 import sys
 import os
 import re
@@ -9,10 +10,22 @@ from typing import Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QTextEdit, QLabel, QLineEdit, QGroupBox,
-    QRadioButton, QButtonGroup, QMessageBox, QProgressBar, QFrame
+    QRadioButton, QButtonGroup, QMessageBox, QProgressBar, QFrame,
+    QScrollArea, QSizePolicy
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer, QSettings
-from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QPixmap, QIcon
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer, QSettings, QSize
+from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QPixmap, QIcon, QDragEnterEvent, QDropEvent
+
+# === Resource path helper for PyInstaller ===
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = Path(sys._MEIPASS)
+    except Exception:
+        base_path = Path(__file__).parent
+    return base_path / relative_path
+
 
 # === CLI module import ===
 try:
@@ -105,34 +118,34 @@ class DeviceInfoPanel(QWidget):
         img_container.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.status_indicator = QLabel("●")
-        self.status_indicator.setFont(QFont("SF Mono", 16))
+        self.status_indicator.setFont(QFont("SF Mono", 18, QFont.Weight.Bold))
         self.status_indicator.setStyleSheet("color: #999;")
         img_container.addWidget(self.status_indicator, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.img_label = QLabel()
-        img_path = Path("assets/iphone.png")
+        img_path = resource_path("assets/iphone.png")  # ✅ FIXED: uses resource_path
         if img_path.exists():
             pixmap = QPixmap(str(img_path))
-            size = 128
+            size = 144  # увеличено
             screen = QApplication.primaryScreen()
             if screen:
-                size = int(128 * screen.devicePixelRatio())
+                size = int(144 * screen.devicePixelRatio())
             pixmap = pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             self.img_label.setPixmap(pixmap)
         else:
             self.img_label.setText("📱\n\niPhone\n(not found)")
             self.img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.img_label.setStyleSheet("font-size: 14px; color: #888;")
+            self.img_label.setStyleSheet("font-size: 16px; color: #888; font-weight: bold;")
 
         img_container.addWidget(self.img_label)
         layout.addLayout(img_container)
 
         # Right side: text
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(6)
+        info_layout.setSpacing(8)
 
         title_label = QLabel("Device Information")
-        title_label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        title_label.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         info_layout.addWidget(title_label)
 
         self.model_label = QLabel("Model: —")
@@ -141,7 +154,8 @@ class DeviceInfoPanel(QWidget):
         self.udid_label = QLabel("UDID: —")
 
         for lbl in [self.model_label, self.ios_label, self.activation_label, self.udid_label]:
-            lbl.setFont(QFont("SF Mono, Menlo, monospace", 10))
+            lbl.setFont(QFont("SF Mono, Menlo, monospace", 12))
+            lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             info_layout.addWidget(lbl)
 
         layout.addLayout(info_layout)
@@ -176,27 +190,29 @@ class DeviceInfoPanel(QWidget):
         }
         code = info.get("ProductType", "Unknown")
         name = model_map.get(code, code)
-        self.model_label.setText(f"Model: {name}")
+        self.model_label.setText(f"<b>Model:</b> {name}")
 
         # Other info
-        self.ios_label.setText(f"iOS: {info.get('ProductVersion', '—')}")
+        self.ios_label.setText(f"<b>iOS:</b> {info.get('ProductVersion', '—')}")
+
         state = info.get("ActivationState", "—")
         color = "#4caf50" if state == "Activated" else "#ff9800"
-        self.activation_label.setText(f'<span style="color:{color};">Activation: <b>{state}</b></span>')
+        self.activation_label.setText(f'<span style="color:{color};"><b>Activation:</b> <b>{state}</b></span>')
         self.activation_label.setTextFormat(Qt.TextFormat.RichText)
 
         udid = info.get("UniqueDeviceID", "—")
-        if len(udid) > 10:
-            udid = udid[:6] + "…" + udid[-4:]
-        self.udid_label.setText(f"UDID: {udid}")
+        # ✅ Показываем полный UDID, но делаем его переносимым
+        self.udid_label.setText(f"<b>UDID:</b> {udid}")
+        self.udid_label.setWordWrap(True)
+        self.udid_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
 
 # === Main window ===
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("📱 iOS Activation Bypass (GUI)")
-        self.resize(920, 700)
+        self.setWindowTitle("📱 iOS Activation Bypass (Rust505)")
+        self.resize(1024, 768)
         self.thread = None
 
         # ✅ QSettings — only after QApplication
@@ -211,8 +227,8 @@ class MainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
-        main_layout.setContentsMargins(16, 16, 16, 16)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(16)
 
         # Device panel
         device_frame = QFrame()
@@ -226,6 +242,7 @@ class MainWindow(QMainWindow):
 
         # GUID mode
         mode_group = QGroupBox("GUID Input Mode")
+        mode_group.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         mode_layout = QHBoxLayout()
         self.radio_auto = QRadioButton("Auto-detect (recommended)")
         self.radio_manual = QRadioButton("Manual input")
@@ -240,11 +257,12 @@ class MainWindow(QMainWindow):
 
         # GUID field
         guid_layout = QHBoxLayout()
-        guid_layout.addWidget(QLabel("GUID:"))
+        guid_layout.addWidget(QLabel("GUID:"), alignment=Qt.AlignmentFlag.AlignTop)
         self.guid_edit = QLineEdit()
         self.guid_edit.setPlaceholderText("e.g. 1A2B3C4D-1234-4123-8888-ABCDEF012345")
         self.guid_edit.textChanged.connect(self._validate_guid)
-        self.guid_edit.setMaximumWidth(500)
+        self.guid_edit.setMaximumWidth(600)
+        self.guid_edit.setFont(QFont("SF Mono, Menlo, monospace", 12))
         guid_layout.addWidget(self.guid_edit)
         main_layout.addLayout(guid_layout)
 
@@ -255,6 +273,8 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(False)
         self.start_btn.clicked.connect(self.start_activation)
         self.stop_btn.clicked.connect(self.stop_activation)
+        self.start_btn.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
+        self.stop_btn.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         btn_layout.addWidget(self.start_btn)
         btn_layout.addWidget(self.stop_btn)
         main_layout.addLayout(btn_layout)
@@ -263,15 +283,36 @@ class MainWindow(QMainWindow):
         self.progress = QProgressBar()
         self.progress.setRange(0, 100)
         self.progress.setValue(0)
+        self.progress.setFont(QFont("Segoe UI", 12))
+        self.progress.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid #bbb;
+                border-radius: 5px;
+                text-align: center;
+                height: 24px;
+            }
+            QProgressBar::chunk {
+                background-color: #4caf50;
+                width: 20px;
+            }
+        """)
         main_layout.addWidget(self.progress)
 
         # Logs
         log_group = QGroupBox("Logs")
+        log_group.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         log_layout = QVBoxLayout()
         self.log_view = QTextEdit()
         self.log_view.setReadOnly(True)
-        self.log_view.setFont(QFont("SF Mono, Menlo, Monaco, monospace", 10))
-        self.log_view.setStyleSheet("background: #1e1e1e; color: #e0e0e0;")
+        self.log_view.setFont(QFont("SF Mono, Menlo, Monaco, monospace", 11))
+        self.log_view.setStyleSheet("""
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 8px;
+            font-size: 11pt;
+        """)
+        self.log_view.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         log_layout.addWidget(self.log_view)
         log_group.setLayout(log_layout)
         main_layout.addWidget(log_group)
@@ -287,7 +328,6 @@ class MainWindow(QMainWindow):
         # Load last GUID (if exists)
         last_guid = self.settings.value("last_guid", "")
         if last_guid and validate_guid(last_guid):
-            self.radio_manual.setChecked(True)
             self.guid_edit.setText(last_guid.upper())
 
         # Check dependencies and update device
@@ -300,8 +340,8 @@ class MainWindow(QMainWindow):
             msg = (
                 f"⚠ Missing tools: {', '.join(missing)}\n\n"
                 "Install with:\n"
-                "  brew install libimobiledevice usbmuxd\n"
-                "  pip3 install -U pymobiledevice3"
+                "  brew install libimobiledevice\n"
+                "  pip3 install pymobiledevice3"
             )
             QMessageBox.critical(self, "Dependency Error", msg)
             self.start_btn.setEnabled(False)
@@ -382,8 +422,14 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(False)
 
     def append_log(self, msg: str, level='info'):
-        colors = {'success': '#4caf50', 'error': '#f44336', 'warn': '#ff9800',
-                  'step': '#2196f3', 'info': '#64b5f6', 'detail': '#90a4ae'}
+        colors = {
+            'success': '#4caf50',
+            'error': '#f44336',
+            'warn': '#ff9800',
+            'step': '#2196f3',
+            'info': '#64b5f6',
+            'detail': '#90a4ae'
+        }
         color = colors.get(level, '#e0e0e0')
         ts = time.strftime("%H:%M:%S")
         html = f'<span style="color:#78909c;">[{ts}]</span> <span style="color:{color};">{msg}</span><br>'
@@ -398,7 +444,7 @@ class MainWindow(QMainWindow):
         if guid and validate_guid(guid):
             self.settings.setValue("last_guid", guid)
         QMessageBox.information(self, "Success", "✅ Activation bypass completed!\n\n"
-                                                 "Check Settings → General → About.")
+                                                 "📌 Thanks Rust505 and rhcp011235")
         self.detect_device()
 
     def on_error(self, err: str):
@@ -436,7 +482,7 @@ def enable_dark_mode(app: QApplication):
 
 
 def set_app_icon(app: QApplication):
-    icon_path = Path("assets/app_icon.png")
+    icon_path = resource_path("assets/app_icon.icns")  # ✅ FIXED: uses resource_path
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 
