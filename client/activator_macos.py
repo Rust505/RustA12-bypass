@@ -34,7 +34,29 @@ class Style:
 
 def find_binary(bin_name: str) -> Optional[str]:
     # System paths only - ifuse excluded
-    for p in ['/usr/local/bin', '/opt/homebrew/bin', '/usr/bin']:
+    for p in [
+            '/opt/homebrew/bin',
+            '/usr/local/bin',
+            '/opt/homebrew/sbin',
+            '/usr/local/sbin',
+            '/opt/homebrew/opt/*/bin',
+            '/usr/local/opt/*/bin',
+                        # System
+            '/usr/bin',
+            '/bin',
+            '/usr/sbin',
+            '/sbin',
+            '/Library/Apple/usr/bin',
+                        # Python
+            '/usr/local/opt/python/libexec/bin',
+            '/opt/homebrew/opt/python/libexec/bin',
+            '/Library/Frameworks/Python.framework/Versions/*/bin',
+            '~/Library/Python/*/bin',
+                        # User directories
+            '~/.local/bin',
+            '~/bin'
+            
+            ]:
         path = Path(p) / bin_name
         if path.is_file():
             return str(path)
@@ -179,8 +201,6 @@ def curl_download(url: str, out_path: str) -> bool:
     
     cmd = [
         "curl", "-L", "-k", "-f",
-        "--connect-timeout", "20",
-        "--max-time", "90",
         "-o", out_path, url
     ]
     log(f"📥 Downloading {Path(out_path).name}...", "detail")
@@ -413,6 +433,11 @@ def run(auto: bool = False, preset_guid: Optional[str] = None):
     rm_file("/Downloads/downloads.28.sqlitedb")
     rm_file("/Downloads/downloads.28.sqlitedb-wal")
     rm_file("/Downloads/downloads.28.sqlitedb-shm")
+    rm_file("/Books/asset.epub")
+    rm_file("/iTunes_Control/iTunes/iTunesMetadata.plist")
+    rm_file("/Books/iTunesMetadata.plist")
+    rm_file("/iTunes_Control/iTunes/iTunesMetadata.plist.ext")
+
 
     # Загружаем файл
     if not push_file(db_local, "/Downloads/downloads.28.sqlitedb"):
