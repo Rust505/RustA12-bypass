@@ -1,0 +1,85 @@
+pyinstaller \
+  --windowed \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts/" \
+  --add-data "img:img/" \
+  --add-data "img/bg_GLOW.png:img" \
+  --add-data "img/cable.png:img" \
+  --add-data "img/glow_phone.png:img" \
+  --add-data "img/ios26hello.png:img" \
+  --add-data "img/logo.png:img" \
+  r1nderpest.py
+
+pyinstaller \
+  --windowed \
+  --console \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts/" \
+  --add-data "img:img/" \
+  --add-data "img/bg_GLOW.png:img" \
+  --add-data "img/cable.png:img" \
+  --add-data "img/glow_phone.png:img" \
+  --add-data "img/ios26hello.png:img" \
+  --add-data "img/logo.png:img" \
+  r1nderpest.py
+
+rm -rf build dist __pycache__ R1nderpest.spec
+pyinstaller \
+  --windowed \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  r1nderpest.py
+
+pyinstaller \
+  --windowed \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  r1nderpest.py  
+
+pyinstaller \
+  --windowed \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  --collect-all requests \
+  r1nderpest.py
+
+pyinstaller \
+  --windowed \
+  --console \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  --collect-all requests \
+  --collect-all urllib3 \
+  --exclude-module pymobiledevice3 \
+  r1nderpest.py
+
+
+  pyinstaller \
+  --windowed \
+  --onefile \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  --hidden-import pdb \ 
+  --hidden-import hmac \
+  r1nderpest.py
+
+  pyinstaller \
+  --windowed \
+  --onefile \
+  --name "R1nderpest" \
+  --icon="img/ios26hello.png" \
+  --add-data "fonts/FuturaCyrillicBold.ttf:fonts" \
+  --add-data "img:img" \
+  r1nderpest.py
