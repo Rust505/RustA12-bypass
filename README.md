@@ -1,4 +1,3 @@
-https://buymeacoffee.com/rust505
 https://t.me/rust_a12
 Join the Telegram group @rust_A12
 
