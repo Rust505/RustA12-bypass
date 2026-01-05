@@ -1,5 +1,5 @@
 https://buymeacoffee.com/rust505
-t.me/rust_a12
+https://t.me/rust_a12
 Join the Telegram group @rust_A12
 
 🚀 A12 Bypass Setup & Operation Guide
