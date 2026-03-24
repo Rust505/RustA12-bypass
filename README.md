@@ -1,4 +1,4 @@
-
+telegram @rust_A12
 
 🚀 A12 Bypass Setup & Operation Guide
 📋 Initial Setup
