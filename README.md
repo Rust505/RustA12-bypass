@@ -1,4 +1,4 @@
-https://t.me/rust_a12
+https://t.me/bookra1n color blue telegram check
 Join the Telegram group @rust_A12
 
 🚀 A12 Bypass Setup & Operation Guide
